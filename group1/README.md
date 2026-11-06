@@ -1,5 +1,15 @@
 # Group 1 stock factor analysis
 
+## XRD portfolio optimization
+
+`portfolio_results/group1_xrd_maxsr.xlsx` contains the three maximum-Sharpe portfolios and their efficient frontiers. It uses the professor's yellow-heading XRD covariance matrix, not the historical stock covariance from the regression workbook. The 43-by-43 input matches the average of the four supplied SRD matrices and is positive definite. Source ranges are recorded in `portfolio_inputs/sources.json`.
+
+Expected returns retain the arithmetic means of the 70 class-weighted four-week observations in the previous `Group1_MaxSR_EF.xlsx`. The new attachment supplies covariance only. No annualization or rescaling is applied, and the risk-free rate is zero.
+
+Stage 0 is long-only with weights totaling 100%. Subsequent stages carry existing restrictions forward and add a 0.1% floor or 10% cap only to stocks that violate that threshold in the preceding maximum-Sharpe portfolio. The final solution has all 43 holdings within the band. Each efficient frontier uses its own stage's selective bounds, so other points along it can have holdings outside the band.
+
+Run `python group1/portfolio_optimization.py` to regenerate the portfolio CSVs and metadata. The Excel workbook is a saved snapshot and requires a separate rebuild after changing inputs; its formulas recalculate portfolio statistics but do not rerun optimization. Run `python -m unittest discover -s group1` for the regression and portfolio checks.
+
 Group members: Joseph Ruocco, Niharika Madana, Hunter Allen, Samson Lam.
 
 The analysis uses **stagger_1** and the corrected upstream data. Open `results/group1_stock_factor_results.xlsx` for the complete formatted workbook, or run `Stock_Factor_Regressions.ipynb` to walk through the calculations and plots.

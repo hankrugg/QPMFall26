@@ -1,0 +1,16 @@
+{
+  "covariance_file": "XRD Covariance Matrix.xlsx",
+  "covariance_sheet": "COVARIANCE MATRICES",
+  "covariance_range": "GN5:ID47",
+  "column_labels": "GN2:ID2",
+  "row_labels": "GL5:GL47",
+  "heading": "GN3 (yellow)",
+  "verification": "Matches the elementwise mean of all four supplied SRD matrices.",
+  "returns_file": "Group1_MaxSR_EF.xlsx",
+  "returns_sheet": "Returns",
+  "returns_range": "A1:AR71",
+  "expected_return_method": "Arithmetic mean of the 70 supplied class-weighted four-week returns, retained from the previous workbook.",
+  "return_start": "2021-04-26",
+  "return_end": "2026-08-10",
+  "risk_units": "Supplied XRD covariance units. No rescaling or annualization applied."
+}
