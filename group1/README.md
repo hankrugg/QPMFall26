@@ -1,0 +1,62 @@
+# Group 1 stock factor analysis
+
+## XRD portfolio optimization
+
+`portfolio_results/group1_xrd_maxsr.xlsx` contains the three maximum-Sharpe portfolios, their efficient frontiers, whole-share purchases and weekly performance. It uses the professor's yellow-heading XRD covariance matrix, restricted to 40 stocks. CME, MRNA and UPST were excluded at the user's direction because the official expected-return table omitted them. The remaining covariance submatrix is positive definite. Source ranges and exclusions are recorded in `portfolio_inputs/sources.json`.
+
+Expected returns use the yellow initial-investment values in `QPM Student Stock Picks.xlsx`, Sheet1, divided by 100 and matched by ticker. These replace historical means and already incorporate duplicate selections. Sheet 2's rebalance forecasts are not used. Forecasts are interpreted as annual expected returns, and the risk-free rate is zero. The supplied four-week XRD is multiplied by 52 / 4 = 13 before optimization. The resulting annual matrix is saved in `portfolio_results/annual_xrd_covariance.csv` and passed directly to the optimizer. Annual risk is `sqrt(w.T @ annual_XRD @ w)` with no second factor of 13; annual Sharpe is annual expected return divided by annual risk. This assumes no serial correlation across four-week returns. The Covariance sheet shows the annual matrix first and retains the original supplied entries below it, linked by formulas. Uniform annualization leaves theoretical optimal weights unchanged; solver rounding may create negligible numerical differences.
+
+The Final weights sheet lists all 40 stocks alphabetically, with final target weights, actual September 4 weights after whole-share rounding, share counts and initial values. Cash appears separately. Actual weights use the portfolio value after trading costs as the denominator and sum to 100% including cash.
+
+The Frontier comparison sheet overlays all three stages on common annualized risk/return axes. It links to the individual frontier calculations and summarizes each maximum-Sharpe point. The historical source contains 80 return dates; the earlier 70-date complete-case regression sample is separate. The optimizer does not rebuild the professor's XRD matrix from either sample.
+
+Stage 0 is long-only with weights totaling 100%. Subsequent stages carry existing restrictions forward and add a 0.1% floor or 10% cap only to stocks that violate that threshold in the preceding maximum-Sharpe portfolio. All 40 final target weights are within the band. Each efficient frontier uses its own stage's selective bounds, so other points along it can have holdings outside the band. Tied expected returns are resolved by choosing the lowest-variance portfolio at the maximum-return endpoint.
+
+Purchases allocate $10 million on September 4, reserve 0.15% of each allocation, and round shares down. Actual fees equal 0.15% of executed stock value. Unspent capital remains cash with no interest. Whole-share weights can differ slightly from target bounds. Fixed shares plus cash are valued weekly through November 6 (extended by one week at user request, with no rebalance). Net cumulative return uses the original $10 million; a separate column shows performance since the post-trade opening value. SPY is a frictionless price-series benchmark. Supplied prices are used without adding separate dividends.
+
+Run `python group1/portfolio_optimization.py`, then `python group1/portfolio_performance.py`, to regenerate the CSVs and metadata. The historical `portfolio_inputs/returns.csv` is retained for provenance only and is not used. The Excel workbook is a saved snapshot and requires a separate rebuild after changing inputs; its formulas recalculate portfolio statistics and share purchases but do not rerun optimization. Run `python -m unittest discover -s group1` for the regression and portfolio checks.
+
+Group members: Joseph Ruocco, Niharika Madana, Hunter Allen, Samson Lam.
+
+The analysis uses **stagger_1** and the corrected upstream data. Open `results/group1_stock_factor_results.xlsx` for the complete formatted workbook, or run `Stock_Factor_Regressions.ipynb` to walk through the calculations and plots.
+
+```bash
+python -m pip install -r group1/requirements.txt
+python group1/stock_factor_regressions.py
+python -m unittest discover -s group1
+```
+
+The script and notebook refresh the CSV outputs. The formatted Excel workbook is a snapshot of the committed results and requires a separate rebuild after rerunning the analysis. Its ratios and covariance matrices use Excel formulas; regressions, variable selection, and PCA are computed in Python and do not refit when workbook inputs are edited.
+
+## Classroom method
+
+1. Foreign stocks: regress the weighted stock return on its home currency with an intercept. Always retain beta and pass residuals forward. US stocks skip this step.
+2. Test only AUD/USD against the incoming response. Retain its beta only when the absolute t-statistic is greater than 2; otherwise pass the response through unchanged. Do not test other secondary currencies. Skip AUD if it is already the home-currency prior.
+3. Regress the resulting response on SPY; always retain beta and residuals.
+4. Regress those residuals on the primary sector residual factor, always retaining beta. Test each remaining sector individually against the current residuals. Keep the factor with the largest absolute t-statistic only if |t| > 2, pass its residuals forward, and repeat with the unselected sectors. Stop when no remaining sector passes. Retained betas are not jointly refitted; there is no count cap.
+5. Calculate the final residual covariance matrix on dates shared by every stock. Run centered, unstandardized covariance PCA to obtain all eigenvalues, eigenvectors, and scores.
+6. Assemble applied betas, stage and overall fit statistics, both covariance matrices, PCA results, residual histories, and the selection audit in Excel.
+
+Step 4 interprets the primary-sector prior as a mandatory univariate first fit, analogous to the home-currency prior. Its coefficient stays fixed during subsequent one-factor fits. The board's exact-equality case at a t-statistic of +/-2 is ambiguous; this implementation retains only strict absolute t-statistics greater than 2. Empty candidate blocks pass their incoming response through unchanged.
+
+## Source and scope
+
+`data/companies_and_staggered_returns.xlsx` supplies 80 nonoverlapping four-week return dates, already scaled by the class time-weight schedule. Weighted returns start at Excel row 255, and sector residuals at row 339. The company table separates stocks from factors. Duplicate stock selections are modeled once per ticker.
+
+The source contains **43 stocks and 18 factors**: six currency returns, SPY, and eleven sector residual factors. The board sketches 23 factor columns, but the remaining five factors have not been identified or supplied. No factors are fabricated to force that shape. Sector factors are residuals from the upstream SPY regressions, not raw sector ETF returns.
+
+Each stock uses a fixed complete-case sample across every stage. Missing pre-listing prices are never filled. Covariance and PCA use **70 shared dates, 2021-04-26 through 2026-08-10**. Factor covariance uses the identical sample. Sample covariance uses denominator n - 1. Using one common sample preserves positive semidefiniteness; pairwise deletion is not used.
+
+## Outputs and interpretation
+
+The workbook's main views are Summary, Betas, Stage risk, Factor covariance, Residual covariance, and PCA. Supporting sheets contain fit diagnostics, eigenvectors, scores, coefficients, the complete selection log, all stage residual histories, common-sample data, source returns, company assignments, and method notes. CSV outputs provide the same analytical results for downstream use.
+
+Applied beta is zero for excluded factors. Each coefficient row now represents one univariate fit. Its alpha and R-squared belong to that selection step. Total alpha sums one intercept per retained fit. Overall reconstruction R-squared is `1 - sum(final residual^2) / sum((original return - mean(original return))^2)`; it is not adjusted R-squared from a simultaneous multivariate regression.
+
+Cumulative R-squared is reported after home FX, other FX, SPY, the primary sector, and other sectors. Each value is measured against the same original stock-return variance: `1 - sum((stage response - mean(stage response))^2) / sum((original return - mean(original return))^2)`. Centering makes the original baseline zero and leaves skipped stages unchanged. Retained regressions include an intercept, so their residuals are already centered. On the fixed stock sample this also equals `1 - (stage residual std / original std)^2`. Do not add individual stage R-squared values. The final cumulative value equals the overall reconstruction R-squared, up to numerical precision. Betas columns U:Y show the five checkpoints; Stage risk includes the baseline and all checkpoints in Q:V.
+
+Standard deviations use class-weighted four-week return units and are not annualized. Covariances and PCA eigenvalues use the squared units. Eigenvectors are unit-length directions, not variance-scaled loadings. Scores project centered residuals onto those directions; eigenvector signs are arbitrary and are oriented consistently for reproducibility.
+
+Each retained one-factor fit cannot increase residual sample variance relative to its incoming response. The pipeline checks block-level monotonicity, exact return reconstruction to 1e-10, eigenvector orthonormality, and covariance reconstruction from the eigenpairs.
+
+Sequential betas depend on stage order; later fits can reintroduce correlation with earlier factors. OLS on the saved scaled returns differs from conventional weighted least squares. T-statistics are classical OLS statistics. Selection and residual reductions are exploratory and in-sample; no multiple-testing adjustment or out-of-sample validation is applied. Foreign tickers are US-listed USD-priced shares/ADRs; their currency regression measures FX exposure rather than converting local returns into USD.

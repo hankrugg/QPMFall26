@@ -1,0 +1,23 @@
+{
+  "covariance_file": "XRD Covariance Matrix (1).xlsx",
+  "covariance_sheet": "COVARIANCE MATRICES",
+  "covariance_range": "GN5:ID47",
+  "column_labels": "GN2:ID2",
+  "row_labels": "GL5:GL47",
+  "heading": "GN3 (yellow)",
+  "verification": "Selected 40-stock submatrix matches corresponding entries of the four-SRD average.",
+  "expected_return_method": "Official yellow initial expected returns divided by 100, matched by ticker. BRK.B normalized to BRK-B.",
+  "risk_units": "Annual optimizer covariance = 13 times the supplied four-week XRD covariance. Source entries retained unchanged. Risk uses annual matrix directly, with no second annualization.",
+  "expected_return_file": "QPM Student Stock Picks.xlsx",
+  "expected_return_range": "Sheet1!I3:L48",
+  "excluded_stocks": [
+    "CME",
+    "MRNA",
+    "UPST"
+  ],
+  "exclusion_reason": "User instructed exclusion because no official expected returns were supplied.",
+  "weekly_prices_file": "WeeklyPrices_2026-09-04_to_2026-11-06 (1).xlsx",
+  "weekly_prices_range": "Weekly Prices!A1:AS11",
+  "performance_end": "2026-11-06",
+  "expected_return_basis": "Official initial forecasts interpreted as annual expected returns."
+}
