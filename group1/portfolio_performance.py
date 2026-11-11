@@ -25,8 +25,8 @@ def run():
     weights = weights[weights.stage == weights.stage.max()].set_index('ticker').weight
     prices = pd.read_csv(HERE/'portfolio_inputs/weekly_prices.csv', index_col=0)
     prices.index = pd.to_datetime(prices.index)
-    prices = prices.loc['2026-09-04':'2026-10-30']
-    if prices.index[0] != pd.Timestamp('2026-09-04') or prices.index[-1] != pd.Timestamp('2026-10-30'):
+    prices = prices.loc['2026-09-04':'2026-11-06']
+    if prices.index[0] != pd.Timestamp('2026-09-04') or prices.index[-1] != pd.Timestamp('2026-11-06'):
         raise ValueError('Missing performance endpoints')
     px = prices[weights.index]
     if not np.isfinite(prices.to_numpy()).all() or (prices <= 0).any().any():

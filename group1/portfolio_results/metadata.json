@@ -28,9 +28,9 @@
       "UPST"
     ],
     "exclusion_reason": "User instructed exclusion because no official expected returns were supplied.",
-    "weekly_prices_file": "WeeklyPrices_2026-09-04_to_2026-11-06.xlsx",
-    "weekly_prices_range": "Weekly Prices!A1:AS10",
-    "performance_end": "2026-10-30",
+    "weekly_prices_file": "WeeklyPrices_2026-09-04_to_2026-11-06 (1).xlsx",
+    "weekly_prices_range": "Weekly Prices!A1:AS11",
+    "performance_end": "2026-11-06",
     "expected_return_basis": "Official initial forecasts interpreted as annual expected returns."
   }
 }
