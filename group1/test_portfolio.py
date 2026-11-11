@@ -7,7 +7,7 @@ from portfolio_performance import purchases
 
 class PortfolioTests(unittest.TestCase):
     def test_annual_risk_and_sharpe(self):
-        result = metrics(np.array([.5,.5]),np.array([.08,.10]),np.diag([.01,.03]))
+        result = metrics(np.array([.5,.5]),np.array([.08,.10]),13*np.diag([.01,.03]))
         self.assertAlmostEqual(result['expected_return'],.09)
         self.assertAlmostEqual(result['risk'],np.sqrt(.13))
         self.assertAlmostEqual(result['sharpe'],.09/np.sqrt(.13))

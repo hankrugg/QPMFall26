@@ -7,7 +7,7 @@
   "heading": "GN3 (yellow)",
   "verification": "Selected 40-stock submatrix matches corresponding entries of the four-SRD average.",
   "expected_return_method": "Official yellow initial expected returns divided by 100, matched by ticker. BRK.B normalized to BRK-B.",
-  "risk_units": "Source XRD covariance retained in four-week squared-return units. Reported risk annualized with 13 four-week periods per year; annual covariance = 13 times source covariance.",
+  "risk_units": "Annual optimizer covariance = 13 times the supplied four-week XRD covariance. Source entries retained unchanged. Risk uses annual matrix directly, with no second annualization.",
   "expected_return_file": "QPM Student Stock Picks.xlsx",
   "expected_return_range": "Sheet1!I3:L48",
   "excluded_stocks": [

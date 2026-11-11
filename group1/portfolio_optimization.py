@@ -54,9 +54,8 @@ def min_variance(mu, cov, lower, upper, initial, target=None):
 
 
 def metrics(w, mu, cov):
-    # Keep the source covariance in four-week units; annualize reported risk.
-    # Multiplication by a common positive constant leaves the optimizer unchanged.
-    ret, risk = float(mu @ w), float(np.sqrt(PERIODS_PER_YEAR * (w @ cov @ w)))
+    """Annual return and risk from an already annualized covariance matrix."""
+    ret, risk = float(mu @ w), float(np.sqrt(w @ cov @ w))
     return dict(expected_return=ret, risk=risk, sharpe=ret/risk,
                 weight_sum=float(w.sum()), min_weight=float(w.min()),
                 max_weight=float(w.max()),
@@ -91,7 +90,8 @@ def run():
     if len(set(tickers)) != len(tickers) or list(frame.columns) != tickers:
         raise ValueError('Covariance labels must be unique and aligned')
     mu = pd.read_csv(inputs/'expected_returns.csv').set_index('ticker').loc[tickers, 'expected_return'].to_numpy()
-    cov = frame.to_numpy()
+    annual_frame = frame * PERIODS_PER_YEAR
+    cov = annual_frame.to_numpy()
     if not np.isfinite(cov).all() or not np.isfinite(mu).all():
         raise ValueError('Nonfinite input')
     if not np.allclose(cov, cov.T, atol=1e-12) or np.linalg.eigvalsh(cov).min() <= 0:
@@ -138,11 +138,12 @@ def run():
     else:
         raise ValueError('Staged bounds did not converge')
     output.mkdir(exist_ok=True)
+    annual_frame.to_csv(output/'annual_xrd_covariance.csv')
     for name, rows in [('stages',stages),('weights',weights),('frontiers',frontiers)]:
         pd.DataFrame(rows).to_csv(output/f'{name}.csv',index=False)
     metadata = dict(risk_free_rate=0, floor=FLOOR, cap=CAP, tolerance=TOL,
         periods_per_year=PERIODS_PER_YEAR,
-        risk_basis='Annualized standard deviation: sqrt(13 * w.T @ four_week_XRD @ w).',
+        risk_basis='Annual covariance = 13 * supplied four-week XRD, constructed before optimization. Risk = sqrt(w.T @ annual_XRD @ w).',
         expected_return_basis='Official initial forecasts interpreted as annual expected returns.',
         stages=len(stages), stocks=n, minimum_covariance_eigenvalue=float(np.linalg.eigvalsh(cov).min()),
         method='Carry prior bounds forward and add floors/caps only for violations in the preceding maximum-Sharpe portfolio. Each frontier uses that stage\'s bounds.',
