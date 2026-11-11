@@ -7,6 +7,7 @@ from scipy.optimize import minimize, linprog, LinearConstraint
 
 HERE = Path(__file__).resolve().parent
 FLOOR, CAP, TOL = 0.001, 0.10, 1e-8
+PERIODS_PER_YEAR = 13  # 52 weeks / four-week return period
 
 
 def check_weights(w, lower, upper):
@@ -53,7 +54,9 @@ def min_variance(mu, cov, lower, upper, initial, target=None):
 
 
 def metrics(w, mu, cov):
-    ret, risk = float(mu @ w), float(np.sqrt(w @ cov @ w))
+    # Keep the source covariance in four-week units; annualize reported risk.
+    # Multiplication by a common positive constant leaves the optimizer unchanged.
+    ret, risk = float(mu @ w), float(np.sqrt(PERIODS_PER_YEAR * (w @ cov @ w)))
     return dict(expected_return=ret, risk=risk, sharpe=ret/risk,
                 weight_sum=float(w.sum()), min_weight=float(w.min()),
                 max_weight=float(w.max()),
@@ -138,6 +141,9 @@ def run():
     for name, rows in [('stages',stages),('weights',weights),('frontiers',frontiers)]:
         pd.DataFrame(rows).to_csv(output/f'{name}.csv',index=False)
     metadata = dict(risk_free_rate=0, floor=FLOOR, cap=CAP, tolerance=TOL,
+        periods_per_year=PERIODS_PER_YEAR,
+        risk_basis='Annualized standard deviation: sqrt(13 * w.T @ four_week_XRD @ w).',
+        expected_return_basis='Official initial forecasts interpreted as annual expected returns.',
         stages=len(stages), stocks=n, minimum_covariance_eigenvalue=float(np.linalg.eigvalsh(cov).min()),
         method='Carry prior bounds forward and add floors/caps only for violations in the preceding maximum-Sharpe portfolio. Each frontier uses that stage\'s bounds.',
         sources=json.loads((inputs/'sources.json').read_text()))

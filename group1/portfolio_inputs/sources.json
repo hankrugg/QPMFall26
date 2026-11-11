@@ -7,7 +7,7 @@
   "heading": "GN3 (yellow)",
   "verification": "Selected 40-stock submatrix matches corresponding entries of the four-SRD average.",
   "expected_return_method": "Official yellow initial expected returns divided by 100, matched by ticker. BRK.B normalized to BRK-B.",
-  "risk_units": "Supplied XRD covariance units. No rescaling or annualization applied.",
+  "risk_units": "Source XRD covariance retained in four-week squared-return units. Reported risk annualized with 13 four-week periods per year; annual covariance = 13 times source covariance.",
   "expected_return_file": "QPM Student Stock Picks.xlsx",
   "expected_return_range": "Sheet1!I3:L48",
   "excluded_stocks": [
@@ -18,5 +18,6 @@
   "exclusion_reason": "User instructed exclusion because no official expected returns were supplied.",
   "weekly_prices_file": "WeeklyPrices_2026-09-04_to_2026-11-06.xlsx",
   "weekly_prices_range": "Weekly Prices!A1:AS10",
-  "performance_end": "2026-10-30"
+  "performance_end": "2026-10-30",
+  "expected_return_basis": "Official initial forecasts interpreted as annual expected returns."
 }
