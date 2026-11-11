@@ -60,6 +60,27 @@ def metrics(w, mu, cov):
                 outside_band=int(((w < FLOOR-TOL) | (w > CAP+TOL)).sum()))
 
 
+def maximum_return_portfolio(mu, cov, lower, upper):
+    """Minimum variance on the maximum-return face, including tied forecasts."""
+    remaining = 1 - lower.sum()
+    lo, hi = lower.copy(), upper.copy()
+    for level in sorted(set(mu), reverse=True):
+        group = mu == level
+        capacity = (upper[group] - lower[group]).sum()
+        if remaining > capacity + 1e-12:
+            lo[group] = upper[group]
+            remaining -= capacity
+        else:
+            hi[mu < level] = lower[mu < level]
+            initial = lo.copy()
+            if capacity > 0:
+                initial[group] += remaining * (upper[group]-lower[group])/capacity
+            if np.allclose(lo, hi, atol=1e-14):
+                return lo
+            return min_variance(mu, cov, lo, hi, initial)
+    raise ValueError('Infeasible maximum-return bounds')
+
+
 def run():
     inputs, output = HERE/'portfolio_inputs', HERE/'portfolio_results'
     frame = pd.read_csv(inputs/'xrd_covariance.csv', index_col=0)
@@ -97,11 +118,8 @@ def run():
             elif point == 0:
                 candidate, label = minimum, 'Min variance'
             elif point == len(targets)-1:
-                # With distinct expected returns the bounded linear maximum
-                # is unique. Avoid a degenerate equality QP at this endpoint.
-                if len(np.unique(mu)) != n:
-                    raise ValueError('Tied expected returns require endpoint tie-breaking')
-                candidate, label = maximum.x, 'Max return'
+                candidate = maximum_return_portfolio(mu, cov, lower, upper)
+                label = 'Max return'
             else:
                 fraction = (target-mu @ minimum)/(mu @ maximum.x-mu @ minimum)
                 initial = (1-fraction)*minimum + fraction*maximum.x
